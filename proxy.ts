@@ -29,7 +29,6 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // Public paths — always accessible
   const isPublicPath =
     pathname.startsWith('/auth') || pathname === '/login' || pathname === '/'
 
@@ -39,7 +38,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Admin guard — only admin email can access /admin/*
   if (user && pathname.startsWith('/admin')) {
     const isAdmin =
       user.user_metadata?.role === 'admin' ||
