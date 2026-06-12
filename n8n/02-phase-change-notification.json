@@ -1,0 +1,104 @@
+{
+  "name": "vivesmedia Hub — Notification changement de phase",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "phase-change",
+        "responseMode": "onReceived"
+      },
+      "id": "webhook-phase",
+      "name": "Webhook — Phase changée",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const record = $input.first().json.record ?? $input.first().json;\nconst phaseLabels = {\n  onboarding: 'Démarrage du projet',\n  design: 'Phase design & maquettes',\n  dev: 'Développement en cours',\n  recette: 'Validation & recette',\n  livraison: 'Mise en ligne',\n  maintenance: 'Maintenance & support'\n};\nconst phaseDescriptions = {\n  onboarding: \"Nous collectons toutes les informations nécessaires pour démarrer.\",\n  design: \"Nos designers créent les maquettes de votre site. Votre validation sera demandée.\",\n  dev: \"Notre équipe technique développe votre site. Nous vous tiendrons informé de l'avancement.\",\n  recette: \"Votre site est presque prêt ! Nous préparons la phase de validation finale.\",\n  livraison: \"Votre site est en ligne ! Vérifiez que tout fonctionne correctement.\",\n  maintenance: \"Votre site est en production. Notre équipe assure sa maintenance.\"\n};\nreturn [{\n  json: {\n    projectId: record.project_id,\n    phase: record.phase,\n    phaseLabel: phaseLabels[record.phase] ?? record.phase,\n    phaseDescription: phaseDescriptions[record.phase] ?? '',\n    note: record.note ?? ''\n  }\n}];"
+      },
+      "id": "extract-phase",
+      "name": "Extraire données phase",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "projects",
+        "id": "={{ $json.projectId }}"
+      },
+      "id": "get-project",
+      "name": "Récupérer projet",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [680, 300],
+      "credentials": {
+        "supabaseApi": {
+          "name": "Supabase vivesmedia Hub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "clients",
+        "filterByFormula": "={{ `id=eq.${$json.client_id}` }}",
+        "limit": 1
+      },
+      "id": "get-client",
+      "name": "Récupérer client",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "credentials": {
+        "supabaseApi": {
+          "name": "Supabase vivesmedia Hub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "hub@vivesmedia.com",
+        "toEmail": "={{ $json.email }}",
+        "subject": "={{ `${$('Récupérer projet').first().json.name} — Nouvelle étape : ${$('Extraire données phase').first().json.phaseLabel}` }}",
+        "emailType": "html",
+        "message": "={{ `\n<p>Bonjour ${$json.name},</p>\n<p>Votre projet <strong>${$('Récupérer projet').first().json.name}</strong> a franchi une nouvelle étape.</p>\n<div style=\"background:#fff8f6;border-left:3px solid #F4521E;padding:16px;margin:16px 0;border-radius:8px;\">\n  <p style=\"margin:0 0 4px;font-size:11px;color:#F4521E;font-weight:700;text-transform:uppercase;\">Étape en cours</p>\n  <p style=\"margin:0;font-size:18px;font-weight:700;color:#111;\">${$('Extraire données phase').first().json.phaseLabel}</p>\n  <p style=\"margin:8px 0 0;font-size:14px;color:#666;\">${$('Extraire données phase').first().json.phaseDescription}</p>\n</div>\n${$('Extraire données phase').first().json.note ? `<p style=\"font-style:italic;color:#555;\">&ldquo;${$('Extraire données phase').first().json.note}&rdquo;</p>` : ''}\n<p><a href=\"${$env.HUB_URL}/dashboard/${$('Extraire données phase').first().json.projectId}\" style=\"background:#F4521E;color:#fff;padding:12px 24px;border-radius:50px;text-decoration:none;font-weight:700;\">Voir mon espace →</a></p>\n` }}"
+      },
+      "id": "email-client",
+      "name": "Email client — changement phase",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1120, 300],
+      "credentials": {
+        "smtp": {
+          "name": "Resend SMTP"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook — Phase changée": {
+      "main": [[{ "node": "Extraire données phase", "type": "main", "index": 0 }]]
+    },
+    "Extraire données phase": {
+      "main": [[{ "node": "Récupérer projet", "type": "main", "index": 0 }]]
+    },
+    "Récupérer projet": {
+      "main": [[{ "node": "Récupérer client", "type": "main", "index": 0 }]]
+    },
+    "Récupérer client": {
+      "main": [[{ "node": "Email client — changement phase", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Paris",
+    "saveExecutionProgress": true
+  },
+  "meta": {
+    "description": "Déclenché à chaque insertion dans phase_history. Notifie le client par email avec les détails de la nouvelle phase.",
+    "version": "1.0.0"
+  }
+}

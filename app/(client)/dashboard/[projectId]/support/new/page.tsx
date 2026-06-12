@@ -3,18 +3,15 @@
 import { useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, AlertCircle } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 import type { TicketPriority } from '@/types/database'
 
-const PRIORITY_OPTIONS: { value: TicketPriority; label: string; description: string }[] = [
-  { value: 'low', label: 'Faible', description: 'Pas urgent, peut attendre quelques jours' },
-  { value: 'medium', label: 'Moyen', description: 'À traiter dans les 48h' },
-  { value: 'high', label: 'Urgent', description: 'Bloque mon activité — intervention rapide requise' },
+const PRIORITY_OPTIONS: { value: TicketPriority; label: string; description: string; color: string }[] = [
+  { value: 'low', label: 'Faible', description: 'Peut attendre quelques jours', color: 'emerald' },
+  { value: 'medium', label: 'Moyen', description: 'À traiter dans les 48h', color: 'amber' },
+  { value: 'high', label: 'Urgent', description: 'Bloque mon activité', color: 'red' },
 ]
-
-const inputClass =
-  'w-full text-sm text-zinc-900 bg-white border border-zinc-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent placeholder:text-zinc-400 transition-shadow'
 
 export default function NewTicketPage() {
   const router = useRouter()
@@ -35,7 +32,7 @@ export default function NewTicketPage() {
 
     setLoading(true)
     try {
-      const res = await fetch(`/api/client/projects/${projectId}/tickets`, {
+      const res = await fetch(`/hub/api/client/projects/${projectId}/tickets`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, description, priority }),
@@ -52,100 +49,104 @@ export default function NewTicketPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 py-10 px-4">
-      <div className="max-w-xl mx-auto">
-        <Link
-          href={`/dashboard/${projectId}`}
-          className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-900 transition-colors mb-8"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Retour au projet
-        </Link>
+    <div className="max-w-xl mx-auto">
+      <Link
+        href={`/dashboard/${projectId}`}
+        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Retour au projet
+      </Link>
 
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-zinc-900">Nouveau ticket de support</h1>
-          <p className="text-sm text-zinc-500 mt-2">
-            Décrivez votre demande avec le plus de détails possible pour accélérer la résolution.
-          </p>
-        </div>
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] mb-1" style={{ color: '#F4521E' }}>
+        Support
+      </p>
+      <h1 className="text-2xl font-bold text-foreground mb-2">Nouveau ticket de support</h1>
+      <p className="text-sm text-muted-foreground mb-8">
+        Décrivez votre demande avec le plus de détails possible pour accélérer la résolution.
+      </p>
 
-        <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 flex gap-3">
-          <AlertCircle className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-          <p className="text-sm text-blue-800">
-            Le support est disponible dans le cadre de votre contrat de maintenance.
-            Délai de réponse habituel : <strong>24-48h ouvrées</strong>.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-zinc-900 mb-1.5">
-              Titre du problème <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ex : La page contact ne s'affiche pas correctement"
-              className={inputClass}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-zinc-900 mb-1.5">
-              Description détaillée <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              rows={5}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Décrivez le problème en détail : ce que vous avez fait, ce que vous voyez, ce qui était attendu, les étapes pour reproduire..."
-              className={`${inputClass} resize-none`}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-zinc-900 mb-2">
-              Niveau d'urgence
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {PRIORITY_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setPriority(opt.value)}
-                  className={`p-3 rounded-xl border text-left transition-colors ${
-                    priority === opt.value
-                      ? opt.value === 'high'
-                        ? 'border-red-500 bg-red-50'
-                        : opt.value === 'medium'
-                        ? 'border-yellow-500 bg-yellow-50'
-                        : 'border-zinc-400 bg-zinc-50'
-                      : 'border-zinc-200 bg-white hover:border-zinc-300'
-                  }`}
-                >
-                  <p className={`text-sm font-semibold ${
-                    priority === opt.value
-                      ? opt.value === 'high' ? 'text-red-700' : opt.value === 'medium' ? 'text-yellow-700' : 'text-zinc-900'
-                      : 'text-zinc-600'
-                  }`}>
-                    {opt.label}
-                  </p>
-                  <p className="text-xs text-zinc-400 mt-0.5 leading-tight">{opt.description}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-zinc-900 text-white text-sm font-medium py-3 px-6 rounded-xl hover:bg-zinc-700 disabled:opacity-50 transition-colors"
-          >
-            {loading ? 'Envoi...' : 'Envoyer le ticket →'}
-          </button>
-        </form>
+      {/* Info banner */}
+      <div className="flex items-start gap-3 bg-card rounded-2xl border border-border p-4 mb-6">
+        <Clock className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#F4521E' }} />
+        <p className="text-sm text-muted-foreground">
+          Support disponible dans le cadre de votre contrat de maintenance.
+          Délai de réponse habituel : <strong className="text-foreground">24-48h ouvrées</strong>.
+        </p>
       </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Titre */}
+        <div className="bg-card rounded-2xl border border-border p-5">
+          <label className="block text-sm font-semibold text-foreground mb-3">
+            Titre du problème <span style={{ color: '#F4521E' }}>*</span>
+          </label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Ex : La page contact ne s'affiche pas correctement"
+            required
+            className="w-full text-sm bg-secondary rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none border border-transparent focus:border-border transition-colors"
+          />
+        </div>
+
+        {/* Description */}
+        <div className="bg-card rounded-2xl border border-border p-5">
+          <label className="block text-sm font-semibold text-foreground mb-3">
+            Description détaillée <span style={{ color: '#F4521E' }}>*</span>
+          </label>
+          <textarea
+            rows={5}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Décrivez le problème : ce que vous avez fait, ce que vous voyez, ce qui était attendu, comment reproduire…"
+            required
+            className="w-full text-sm bg-secondary rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none border border-transparent focus:border-border resize-none transition-colors"
+          />
+        </div>
+
+        {/* Priorité */}
+        <div className="bg-card rounded-2xl border border-border p-5">
+          <label className="block text-sm font-semibold text-foreground mb-3">Niveau d'urgence</label>
+          <div className="grid grid-cols-3 gap-2">
+            {PRIORITY_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setPriority(opt.value)}
+                className={`p-3 rounded-xl border text-left transition-all ${
+                  priority === opt.value
+                    ? opt.value === 'high'
+                      ? 'border-red-300 bg-red-50'
+                      : opt.value === 'medium'
+                      ? 'border-amber-300 bg-amber-50'
+                      : 'border-emerald-300 bg-emerald-50'
+                    : 'border-border bg-secondary/50 hover:border-border'
+                }`}
+              >
+                <p className={`text-sm font-semibold ${
+                  priority === opt.value
+                    ? opt.value === 'high' ? 'text-red-700' : opt.value === 'medium' ? 'text-amber-700' : 'text-emerald-700'
+                    : 'text-foreground'
+                }`}>
+                  {opt.label}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{opt.description}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-white py-3 rounded-full hover:opacity-90 transition-all disabled:opacity-50"
+          style={{ backgroundColor: '#F4521E' }}
+        >
+          {loading ? 'Envoi…' : <>Envoyer le ticket <ArrowUpRight className="w-4 h-4" /></>}
+        </button>
+      </form>
     </div>
   )
 }

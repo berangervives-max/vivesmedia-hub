@@ -1,0 +1,138 @@
+{
+  "name": "vivesmedia Hub — Alerte ticket urgent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ticket-created",
+        "responseMode": "onReceived"
+      },
+      "id": "webhook-ticket",
+      "name": "Webhook — Ticket créé",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const record = $input.first().json.record ?? $input.first().json;\nreturn [{\n  json: {\n    ticketId: record.id,\n    projectId: record.project_id,\n    clientId: record.client_id,\n    title: record.title,\n    description: record.description,\n    priority: record.priority,\n    isUrgent: record.priority === 'high'\n  }\n}];"
+      },
+      "id": "extract-ticket",
+      "name": "Extraire données ticket",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "is-urgent",
+              "leftValue": "={{ $json.isUrgent }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-urgent",
+      "name": "Ticket urgent ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "clients",
+        "filterByFormula": "={{ `id=eq.${$('Extraire données ticket').first().json.clientId}` }}",
+        "limit": 1
+      },
+      "id": "get-client",
+      "name": "Récupérer client",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [900, 200],
+      "credentials": {
+        "supabaseApi": {
+          "name": "Supabase vivesmedia Hub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "projects",
+        "id": "={{ $('Extraire données ticket').first().json.projectId }}"
+      },
+      "id": "get-project",
+      "name": "Récupérer projet",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [900, 360],
+      "credentials": {
+        "supabaseApi": {
+          "name": "Supabase vivesmedia Hub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "hub@vivesmedia.com",
+        "toEmail": "={{ $env.ADMIN_EMAIL }}",
+        "subject": "={{ `[Hub] 🔴 TICKET URGENT — ${$('Récupérer client').first().json.name} · ${$('Récupérer projet').first().json.name}` }}",
+        "emailType": "html",
+        "message": "={{ `\n<div style=\"background:#fef2f2;border-left:3px solid #ef4444;padding:16px;border-radius:8px;margin-bottom:16px;\">\n  <p style=\"margin:0 0 4px;font-size:11px;color:#ef4444;font-weight:700;text-transform:uppercase;\">TICKET URGENT</p>\n  <p style=\"margin:0;font-size:18px;font-weight:700;color:#111;\">${$('Extraire données ticket').first().json.title}</p>\n</div>\n<p style=\"margin:0 0 4px;font-size:13px;color:#999;\">Client : <strong style=\"color:#111;\">${$('Récupérer client').first().json.name}</strong> (${$('Récupérer client').first().json.email})</p>\n<p style=\"margin:0 0 16px;font-size:13px;color:#999;\">Projet : <strong style=\"color:#111;\">${$('Récupérer projet').first().json.name}</strong></p>\n<div style=\"background:#f9f9f9;padding:14px;border-radius:10px;margin-bottom:20px;font-size:14px;color:#444;line-height:1.6;\">${$('Extraire données ticket').first().json.description}</div>\n<a href=\"${$env.HUB_URL}/admin/projects/${$('Extraire données ticket').first().json.projectId}\" style=\"background:#F4521E;color:#fff;padding:12px 24px;border-radius:50px;text-decoration:none;font-weight:700;\">Voir le ticket →</a>\n` }}"
+      },
+      "id": "alert-admin",
+      "name": "Alerte admin — ticket urgent",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1120, 200],
+      "credentials": {
+        "smtp": {
+          "name": "Resend SMTP"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook — Ticket créé": {
+      "main": [[{ "node": "Extraire données ticket", "type": "main", "index": 0 }]]
+    },
+    "Extraire données ticket": {
+      "main": [[{ "node": "Ticket urgent ?", "type": "main", "index": 0 }]]
+    },
+    "Ticket urgent ?": {
+      "main": [
+        [
+          { "node": "Récupérer client", "type": "main", "index": 0 },
+          { "node": "Récupérer projet", "type": "main", "index": 0 }
+        ],
+        []
+      ]
+    },
+    "Récupérer client": {
+      "main": [[{ "node": "Alerte admin — ticket urgent", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Paris",
+    "saveExecutionProgress": true
+  },
+  "meta": {
+    "description": "Déclenché à chaque nouveau ticket. N'envoie l'alerte admin que si la priorité est 'high' (urgente).",
+    "version": "1.0.0"
+  }
+}

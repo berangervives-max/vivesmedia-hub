@@ -17,7 +17,7 @@ export default function ReviewButton({ projectId }: Props) {
 
     setLoading(true)
     try {
-      const res = await fetch(`/api/admin/projects/${projectId}/review`, { method: 'POST' })
+      const res = await fetch(`/hub/api/admin/projects/${projectId}/review`, { method: 'POST' })
       if (!res.ok) throw new Error(await res.text())
       setSent(true)
       toast.success('Email d\'avis Google envoyé au client !')

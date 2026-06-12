@@ -41,7 +41,7 @@ export default function FileUpload({ projectId, initialFiles }: Props) {
     formData.append('category', category)
 
     try {
-      const res = await fetch(`/api/admin/projects/${projectId}/files`, {
+      const res = await fetch(`/hub/api/admin/projects/${projectId}/files`, {
         method: 'POST',
         body: formData,
       })
@@ -60,7 +60,7 @@ export default function FileUpload({ projectId, initialFiles }: Props) {
   async function handleDelete(fileId: string, fileName: string) {
     if (!confirm(`Supprimer "${fileName}" ?`)) return
     try {
-      const res = await fetch(`/api/admin/projects/${projectId}/files`, {
+      const res = await fetch(`/hub/api/admin/projects/${projectId}/files`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fileId }),

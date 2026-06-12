@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { sendAdminNewTicketAlert } from '@/lib/resend'
+import type { TicketPriority } from '@/types/database'
 
 export async function POST(
   request: NextRequest,
@@ -16,7 +18,7 @@ export async function POST(
 
   const { data: client } = await supabase
     .from('clients')
-    .select('id')
+    .select('id, name')
     .eq('user_id', user.id)
     .single()
 
@@ -24,7 +26,7 @@ export async function POST(
 
   const { data: project } = await supabase
     .from('projects')
-    .select('id, is_maintenance')
+    .select('id, name, is_maintenance')
     .eq('id', projectId)
     .eq('client_id', client.id)
     .single()
@@ -58,6 +60,20 @@ export async function POST(
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  const adminEmail = process.env.ADMIN_EMAIL
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
+  if (adminEmail) {
+    sendAdminNewTicketAlert({
+      adminEmail,
+      clientName: client.name,
+      projectName: project.name,
+      ticketTitle: title,
+      ticketDescription: description,
+      priority: (priority ?? 'medium') as TicketPriority,
+      ticketUrl: `${appUrl}/admin/projects/${projectId}`,
+    }).catch(() => {})
+  }
 
   return NextResponse.json({ ticket })
 }

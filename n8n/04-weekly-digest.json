@@ -1,0 +1,138 @@
+{
+  "name": "vivesmedia Hub — Digest hebdomadaire (lundi 9h)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Cron — Lundi 9h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "tickets",
+        "filterByFormula": "status=eq.open",
+        "limit": 50
+      },
+      "id": "get-open-tickets",
+      "name": "Tickets ouverts",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [460, 200],
+      "credentials": {
+        "supabaseApi": {
+          "name": "Supabase vivesmedia Hub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "projects",
+        "filterByFormula": "current_phase=neq.livraison&current_phase=neq.maintenance",
+        "limit": 50
+      },
+      "id": "get-active-projects",
+      "name": "Projets actifs",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [460, 360],
+      "credentials": {
+        "supabaseApi": {
+          "name": "Supabase vivesmedia Hub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "form_responses",
+        "filterByFormula": "is_complete=eq.false",
+        "limit": 50
+      },
+      "id": "get-pending-onboarding",
+      "name": "Onboardings en attente",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [460, 520],
+      "credentials": {
+        "supabaseApi": {
+          "name": "Supabase vivesmedia Hub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const tickets = $('Tickets ouverts').all().map(i => i.json);\nconst projects = $('Projets actifs').all().map(i => i.json);\nconst pending = $('Onboardings en attente').all().map(i => i.json);\n\nconst ticketHtml = tickets.length === 0\n  ? '<p style=\"color:#10b981;\">✓ Aucun ticket ouvert</p>'\n  : tickets.map(t => `<li><strong>${t.title}</strong> — ${t.priority === 'high' ? '<span style=\"color:#ef4444;\">Urgent</span>' : t.priority}</li>`).join('');\n\nconst projectHtml = projects.length === 0\n  ? '<p style=\"color:#10b981;\">✓ Aucun projet en cours</p>'\n  : projects.map(p => `<li><strong>${p.name}</strong> — Phase : ${p.current_phase}</li>`).join('');\n\nconst pendingHtml = pending.length === 0\n  ? '<p style=\"color:#10b981;\">✓ Tous les onboardings sont complétés</p>'\n  : pending.map(p => `<li>Formulaire ID : ${p.form_id}</li>`).join('');\n\nreturn [{ json: { ticketHtml, projectHtml, pendingHtml, nbTickets: tickets.length, nbProjects: projects.length, nbPending: pending.length } }];"
+      },
+      "id": "build-digest",
+      "name": "Compiler digest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 360]
+    },
+    {
+      "parameters": {
+        "fromEmail": "hub@vivesmedia.com",
+        "toEmail": "={{ $env.ADMIN_EMAIL }}",
+        "subject": "={{ `[Hub] Digest semaine — ${$json.nbTickets} ticket(s) · ${$json.nbProjects} projet(s) actif(s)` }}",
+        "emailType": "html",
+        "message": "={{ `\n<h2 style=\"color:#111;font-size:20px;margin:0 0 20px;\">Digest hebdomadaire vivesmedia Hub</h2>\n\n<div style=\"margin-bottom:20px;\">\n  <p style=\"font-size:11px;color:#F4521E;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 8px;\">Tickets ouverts (${$json.nbTickets})</p>\n  <ul style=\"margin:0;padding-left:20px;color:#444;font-size:14px;line-height:1.8;\">${$json.ticketHtml}</ul>\n</div>\n\n<div style=\"margin-bottom:20px;\">\n  <p style=\"font-size:11px;color:#F4521E;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 8px;\">Projets actifs (${$json.nbProjects})</p>\n  <ul style=\"margin:0;padding-left:20px;color:#444;font-size:14px;line-height:1.8;\">${$json.projectHtml}</ul>\n</div>\n\n<div style=\"margin-bottom:24px;\">\n  <p style=\"font-size:11px;color:#F4521E;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 8px;\">Onboardings en attente (${$json.nbPending})</p>\n  <ul style=\"margin:0;padding-left:20px;color:#444;font-size:14px;line-height:1.8;\">${$json.pendingHtml}</ul>\n</div>\n\n<a href=\"${$env.HUB_URL}/admin\" style=\"background:#F4521E;color:#fff;padding:12px 24px;border-radius:50px;text-decoration:none;font-weight:700;\">Ouvrir le Hub →</a>\n` }}"
+      },
+      "id": "send-digest",
+      "name": "Envoyer digest admin",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [920, 360],
+      "credentials": {
+        "smtp": {
+          "name": "Resend SMTP"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Cron — Lundi 9h": {
+      "main": [
+        [
+          { "node": "Tickets ouverts", "type": "main", "index": 0 },
+          { "node": "Projets actifs", "type": "main", "index": 0 },
+          { "node": "Onboardings en attente", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Tickets ouverts": {
+      "main": [[{ "node": "Compiler digest", "type": "main", "index": 0 }]]
+    },
+    "Projets actifs": {
+      "main": [[{ "node": "Compiler digest", "type": "main", "index": 0 }]]
+    },
+    "Onboardings en attente": {
+      "main": [[{ "node": "Compiler digest", "type": "main", "index": 0 }]]
+    },
+    "Compiler digest": {
+      "main": [[{ "node": "Envoyer digest admin", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Paris",
+    "saveExecutionProgress": false,
+    "saveDataSuccessExecution": "none"
+  },
+  "meta": {
+    "description": "Chaque lundi à 9h : résumé des tickets ouverts, projets actifs, et onboardings en attente. Envoyé par email à Béranger.",
+    "version": "1.0.0"
+  }
+}

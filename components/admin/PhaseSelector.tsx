@@ -33,7 +33,7 @@ export default function PhaseSelector({
     setLoading(true)
 
     try {
-      const res = await fetch(`/api/admin/projects/${projectId}/phase`, {
+      const res = await fetch(`/hub/api/admin/projects/${projectId}/phase`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phase: selected, note }),

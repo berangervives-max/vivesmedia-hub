@@ -31,7 +31,7 @@ export default function VideoManager({ projectId, initialVideos }: Props) {
     }
     setSaving(true)
     try {
-      const res = await fetch(`/api/admin/projects/${projectId}/videos`, {
+      const res = await fetch(`/hub/api/admin/projects/${projectId}/videos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, description, url }),
@@ -54,7 +54,7 @@ export default function VideoManager({ projectId, initialVideos }: Props) {
   async function handleDelete(videoId: string, videoTitle: string) {
     if (!confirm(`Supprimer "${videoTitle}" ?`)) return
     try {
-      const res = await fetch(`/api/admin/projects/${projectId}/videos`, {
+      const res = await fetch(`/hub/api/admin/projects/${projectId}/videos`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ videoId }),

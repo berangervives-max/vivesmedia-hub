@@ -44,7 +44,7 @@ export default function OnboardingForm({ formId, projectId, fields, existingResp
 
     setLoading(true)
     try {
-      const res = await fetch(`/api/client/projects/${projectId}/onboarding`, {
+      const res = await fetch(`/hub/api/client/projects/${projectId}/onboarding`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ formId, responses }),

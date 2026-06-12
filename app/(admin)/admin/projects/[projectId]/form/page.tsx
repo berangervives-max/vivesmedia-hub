@@ -16,9 +16,6 @@ const FIELD_TYPES: { value: FormFieldType; label: string }[] = [
   { value: 'file', label: 'Fichier (lien de partage)' },
 ]
 
-const inputClass =
-  'w-full text-sm text-zinc-900 bg-white border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent placeholder:text-zinc-400'
-
 export default function FormBuilderPage() {
   const router = useRouter()
   const params = useParams()
@@ -33,7 +30,7 @@ export default function FormBuilderPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`/api/admin/projects/${projectId}/form`)
+        const res = await fetch(`/hub/api/admin/projects/${projectId}/form`)
         if (res.ok) {
           const data = await res.json()
           if (data.form) {
@@ -77,7 +74,7 @@ export default function FormBuilderPage() {
     setLoading(true)
     try {
       const method = formId ? 'PUT' : 'POST'
-      const res = await fetch(`/api/admin/projects/${projectId}/form`, {
+      const res = await fetch(`/hub/api/admin/projects/${projectId}/form`, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: formId, title, fields }),
@@ -98,7 +95,7 @@ export default function FormBuilderPage() {
     if (!confirm('Supprimer le formulaire et toutes les réponses ?')) return
     setLoading(true)
     try {
-      const res = await fetch(`/api/admin/projects/${projectId}/form`, { method: 'DELETE' })
+      const res = await fetch(`/hub/api/admin/projects/${projectId}/form`, { method: 'DELETE' })
       if (!res.ok) throw new Error(await res.text())
       toast.success('Formulaire supprimé.')
       router.push(`/admin/projects/${projectId}`)
@@ -112,7 +109,7 @@ export default function FormBuilderPage() {
   if (fetching) {
     return (
       <div className="p-8 flex items-center justify-center h-64">
-        <p className="text-sm text-zinc-400">Chargement...</p>
+        <p className="text-sm text-muted-foreground">Chargement...</p>
       </div>
     )
   }
@@ -121,7 +118,7 @@ export default function FormBuilderPage() {
     <div className="p-8 max-w-2xl">
       <Link
         href={`/admin/projects/${projectId}`}
-        className="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-900 transition-colors mb-6"
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
       >
         <ArrowLeft className="w-4 h-4" />
         Retour au projet
@@ -129,8 +126,11 @@ export default function FormBuilderPage() {
 
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900">Formulaire d'onboarding</h1>
-          <p className="text-sm text-zinc-500 mt-1">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] mb-1" style={{ color: '#F4521E' }}>
+            Formulaire d'onboarding
+          </p>
+          <h1 className="text-2xl font-bold text-foreground">Éditeur de formulaire</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Ce formulaire sera envoyé au client pour récupérer les informations de démarrage.
           </p>
         </div>
@@ -138,35 +138,38 @@ export default function FormBuilderPage() {
           <button
             onClick={handleDelete}
             disabled={loading}
-            className="text-xs text-red-500 hover:text-red-700 transition-colors"
+            className="text-xs text-red-400 hover:text-red-600 transition-colors"
           >
-            Supprimer le formulaire
+            Supprimer
           </button>
         )}
       </div>
 
-      <div className="space-y-6">
-        <div>
-          <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wide mb-1.5">
+      <div className="space-y-5">
+        {/* Titre */}
+        <div className="bg-card rounded-2xl border border-border p-5">
+          <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-2">
             Titre du formulaire
           </label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className={inputClass}
+            className="w-full text-sm bg-secondary rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none border border-transparent focus:border-border transition-colors"
           />
         </div>
 
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wide">
+        {/* Champs */}
+        <div className="bg-card rounded-2xl border border-border p-5">
+          <div className="flex items-center justify-between mb-4">
+            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-[0.12em]">
               Champs ({fields.length})
             </label>
             <button
               type="button"
               onClick={addField}
-              className="flex items-center gap-1.5 text-xs bg-zinc-900 text-white px-3 py-1.5 rounded-lg hover:bg-zinc-700 transition-colors"
+              className="flex items-center gap-1.5 text-xs text-white px-3 py-1.5 rounded-full hover:opacity-90 transition-all"
+              style={{ backgroundColor: '#F4521E' }}
             >
               <Plus className="w-3 h-3" />
               Ajouter un champ
@@ -174,8 +177,8 @@ export default function FormBuilderPage() {
           </div>
 
           {fields.length === 0 && (
-            <div className="text-center py-8 bg-zinc-50 rounded-xl border-2 border-dashed border-zinc-200">
-              <p className="text-sm text-zinc-400">Aucun champ. Cliquez sur "Ajouter un champ" pour commencer.</p>
+            <div className="text-center py-8 bg-secondary/50 rounded-xl border-2 border-dashed border-border">
+              <p className="text-sm text-muted-foreground">Aucun champ. Cliquez sur &quot;Ajouter un champ&quot; pour commencer.</p>
             </div>
           )}
 
@@ -193,15 +196,14 @@ export default function FormBuilderPage() {
           </div>
         </div>
 
-        <div className="flex gap-3 pt-4 border-t border-zinc-100">
-          <button
-            onClick={handleSave}
-            disabled={loading}
-            className="flex-1 bg-zinc-900 text-white text-sm font-medium py-2.5 px-6 rounded-xl hover:bg-zinc-700 disabled:opacity-50 transition-colors"
-          >
-            {loading ? 'Sauvegarde...' : formId ? 'Mettre à jour' : 'Créer le formulaire'}
-          </button>
-        </div>
+        <button
+          onClick={handleSave}
+          disabled={loading}
+          className="w-full text-white text-sm font-semibold py-3 rounded-full hover:opacity-90 disabled:opacity-50 transition-all"
+          style={{ backgroundColor: '#F4521E' }}
+        >
+          {loading ? 'Sauvegarde...' : formId ? 'Mettre à jour le formulaire' : 'Créer le formulaire'}
+        </button>
       </div>
     </div>
   )
@@ -223,41 +225,41 @@ function FieldEditor({
   const needsOptions = field.type === 'select' || field.type === 'multiselect'
 
   return (
-    <div className="bg-white border border-zinc-100 rounded-xl p-4 space-y-3">
+    <div className="bg-secondary/40 border border-border rounded-xl p-4 space-y-3">
       <div className="flex items-center gap-3">
-        <GripVertical className="w-4 h-4 text-zinc-300 shrink-0" />
-        <span className="text-xs font-medium text-zinc-400 w-5">{index + 1}</span>
+        <GripVertical className="w-4 h-4 text-muted-foreground/40 shrink-0" />
+        <span className="text-xs font-medium text-muted-foreground w-5">{index + 1}</span>
         <div className="flex-1 grid grid-cols-2 gap-2">
           <input
             type="text"
             value={field.label}
             onChange={(e) => onUpdate({ label: e.target.value })}
             placeholder="Label du champ"
-            className="text-sm text-zinc-900 bg-zinc-50 border border-zinc-100 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white"
+            className="text-sm text-foreground bg-card border border-border rounded-lg px-3 py-1.5 focus:outline-none focus:border-foreground/20 transition-colors"
           />
           <select
             value={field.type}
             onChange={(e) => onUpdate({ type: e.target.value as FormFieldType })}
-            className="text-sm text-zinc-900 bg-zinc-50 border border-zinc-100 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+            className="text-sm text-foreground bg-card border border-border rounded-lg px-3 py-1.5 focus:outline-none"
           >
             {FIELD_TYPES.map((t) => (
               <option key={t.value} value={t.value}>{t.label}</option>
             ))}
           </select>
         </div>
-        <label className="flex items-center gap-1.5 text-xs text-zinc-500 shrink-0 cursor-pointer">
+        <label className="flex items-center gap-1.5 text-xs text-muted-foreground shrink-0 cursor-pointer">
           <input
             type="checkbox"
             checked={field.required}
             onChange={(e) => onUpdate({ required: e.target.checked })}
-            className="rounded"
+            className="rounded accent-orange-500"
           />
           Requis
         </label>
         <button
           type="button"
           onClick={onRemove}
-          className="text-zinc-300 hover:text-red-500 transition-colors"
+          className="text-muted-foreground/40 hover:text-red-500 transition-colors"
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -268,12 +270,12 @@ function FieldEditor({
         value={field.placeholder ?? ''}
         onChange={(e) => onUpdate({ placeholder: e.target.value })}
         placeholder="Placeholder (optionnel)"
-        className="w-full text-sm text-zinc-900 bg-zinc-50 border border-zinc-100 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-zinc-900 ml-7"
+        className="w-full text-sm text-foreground bg-card border border-border rounded-lg px-3 py-1.5 focus:outline-none focus:border-foreground/20 ml-7 transition-colors"
       />
 
       {needsOptions && (
         <div className="ml-7">
-          <label className="block text-xs text-zinc-400 mb-1">
+          <label className="block text-xs text-muted-foreground mb-1">
             Options (une par ligne)
           </label>
           <textarea
@@ -281,7 +283,7 @@ function FieldEditor({
             value={field.options?.join('\n') ?? ''}
             onChange={(e) => onOptionsChange(e.target.value)}
             placeholder={'Option 1\nOption 2\nOption 3'}
-            className="w-full text-sm text-zinc-900 bg-zinc-50 border border-zinc-100 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-zinc-900 resize-none"
+            className="w-full text-sm text-foreground bg-card border border-border rounded-lg px-3 py-2 focus:outline-none resize-none"
           />
         </div>
       )}

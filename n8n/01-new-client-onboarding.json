@@ -1,0 +1,178 @@
+{
+  "name": "vivesmedia Hub — Onboarding nouveau client",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "new-client-onboarding",
+        "responseMode": "onReceived",
+        "responseData": "allEntries"
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Supabase — Nouveau projet",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const record = $input.first().json.record ?? $input.first().json;\nconst projectId = record.id;\nconst clientId = record.client_id;\nreturn [{ json: { projectId, clientId, projectName: record.name } }];"
+      },
+      "id": "extract-data",
+      "name": "Extraire données projet",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "clients",
+        "filterByFormula": "={{ `id=eq.${$json.clientId}` }}",
+        "limit": 1
+      },
+      "id": "get-client",
+      "name": "Récupérer client Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [680, 300],
+      "credentials": {
+        "supabaseApi": {
+          "name": "Supabase vivesmedia Hub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "hub@vivesmedia.com",
+        "toEmail": "={{ $('Récupérer client Supabase').first().json.email }}",
+        "subject": "={{ `Votre espace projet est prêt — ${$('Extraire données projet').first().json.projectName}` }}",
+        "emailType": "html",
+        "message": "={{ `<p>Bonjour ${$('Récupérer client Supabase').first().json.name},</p><p>Votre espace projet <strong>${$('Extraire données projet').first().json.projectName}</strong> est prêt.</p><p><a href=\"${$env.HUB_URL}/dashboard/${$('Extraire données projet').first().json.projectId}\" style=\"background:#F4521E;color:#fff;padding:12px 24px;border-radius:50px;text-decoration:none;font-weight:700;\">Accéder à mon espace →</a></p>` }}"
+      },
+      "id": "send-welcome-email",
+      "name": "Email bienvenue client",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [900, 200],
+      "credentials": {
+        "smtp": {
+          "name": "Resend SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "unit": "days",
+        "value": 3
+      },
+      "id": "wait-3-days",
+      "name": "Attendre 3 jours",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "onboarding_forms",
+        "filterByFormula": "={{ `project_id=eq.${$('Extraire données projet').first().json.projectId}` }}",
+        "limit": 1
+      },
+      "id": "check-onboarding",
+      "name": "Vérifier onboarding complété",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1120, 400],
+      "credentials": {
+        "supabaseApi": {
+          "name": "Supabase vivesmedia Hub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-complete",
+              "leftValue": "={{ $json.is_complete }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-not-complete",
+      "name": "Onboarding non complété ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1340, 400]
+    },
+    {
+      "parameters": {
+        "fromEmail": "hub@vivesmedia.com",
+        "toEmail": "={{ $('Récupérer client Supabase').first().json.email }}",
+        "subject": "={{ `Rappel — Formulaire de démarrage ${$('Extraire données projet').first().json.projectName}` }}",
+        "emailType": "html",
+        "message": "={{ `<p>Bonjour ${$('Récupérer client Supabase').first().json.name},</p><p>Il vous reste une étape pour démarrer votre projet <strong>${$('Extraire données projet').first().json.projectName}</strong> : le formulaire de démarrage.</p><p><a href=\"${$env.HUB_URL}/dashboard/${$('Extraire données projet').first().json.projectId}/onboarding\" style=\"background:#F4521E;color:#fff;padding:12px 24px;border-radius:50px;text-decoration:none;font-weight:700;\">Remplir le formulaire →</a></p>` }}"
+      },
+      "id": "send-reminder",
+      "name": "Email rappel onboarding",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1560, 320],
+      "credentials": {
+        "smtp": {
+          "name": "Resend SMTP"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Supabase — Nouveau projet": {
+      "main": [[{ "node": "Extraire données projet", "type": "main", "index": 0 }]]
+    },
+    "Extraire données projet": {
+      "main": [[{ "node": "Récupérer client Supabase", "type": "main", "index": 0 }]]
+    },
+    "Récupérer client Supabase": {
+      "main": [
+        [
+          { "node": "Email bienvenue client", "type": "main", "index": 0 },
+          { "node": "Attendre 3 jours", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Attendre 3 jours": {
+      "main": [[{ "node": "Vérifier onboarding complété", "type": "main", "index": 0 }]]
+    },
+    "Vérifier onboarding complété": {
+      "main": [[{ "node": "Onboarding non complété ?", "type": "main", "index": 0 }]]
+    },
+    "Onboarding non complété ?": {
+      "main": [[{ "node": "Email rappel onboarding", "type": "main", "index": 0 }], []]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Paris",
+    "saveExecutionProgress": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all"
+  },
+  "staticData": null,
+  "meta": {
+    "description": "Déclenché à chaque nouveau projet. Envoie un email de bienvenue, puis vérifie 3 jours plus tard si l'onboarding est complété et envoie un rappel si nécessaire.",
+    "version": "1.0.0"
+  }
+}
