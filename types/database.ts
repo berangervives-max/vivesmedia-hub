@@ -32,6 +32,48 @@ export interface FormField {
 export interface Database {
   public: {
     Tables: {
+      site_articles: {
+        Row: {
+          id: string
+          slug: string
+          titre: string
+          categorie: string | null
+          extrait: string | null
+          contenu: string | null
+          image_url: string | null
+          tags: string | null
+          publie: boolean
+          date_pub: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          slug: string
+          titre: string
+          categorie?: string | null
+          extrait?: string | null
+          contenu?: string | null
+          image_url?: string | null
+          tags?: string | null
+          publie?: boolean
+          date_pub?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          slug?: string
+          titre?: string
+          categorie?: string | null
+          extrait?: string | null
+          contenu?: string | null
+          image_url?: string | null
+          tags?: string | null
+          publie?: boolean
+          date_pub?: string | null
+          updated_at?: string
+        }
+      }
       clients: {
         Row: {
           id: string
