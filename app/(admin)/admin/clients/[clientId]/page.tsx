@@ -5,6 +5,8 @@ import { PHASE_LABELS, PHASE_ORDER } from '@/types/database'
 import type { ProjectPhase } from '@/types/database'
 import { ArrowLeft, Mail, Building2, Phone, ChevronRight, UserCircle } from 'lucide-react'
 import ResendInviteButton from '@/components/admin/ResendInviteButton'
+import EnrollCourses from '@/components/admin/EnrollCourses'
+import { COURSES } from '@/lib/courses'
 
 const PHASE_COLORS: Record<ProjectPhase, string> = {
   onboarding: 'bg-blue-50 text-blue-600',
@@ -30,6 +32,12 @@ export default async function ClientDetailPage({
     .single()
 
   if (!client) notFound()
+
+  const { data: enrollRows } = await supabase
+    .from('course_enrollments')
+    .select('course_slug')
+    .eq('client_id', clientId)
+  const enrolledSlugs = (enrollRows ?? []).map((e) => e.course_slug)
 
   const projects = (client.projects as unknown as {
     id: string
@@ -197,6 +205,15 @@ export default async function ClientDetailPage({
             </div>
           )}
         </div>
+      </div>
+
+      {/* Formations */}
+      <div className="mt-6">
+        <EnrollCourses
+          clientId={clientId}
+          courses={COURSES.map((c) => ({ slug: c.slug, title: c.title }))}
+          enrolled={enrolledSlugs}
+        />
       </div>
     </div>
   )

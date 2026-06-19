@@ -368,6 +368,114 @@ export interface Database {
         }
         Relationships: []
       }
+      course_enrollments: {
+        Row: {
+          id: string
+          client_id: string
+          course_slug: string
+          granted_by: string | null
+          granted_at: string
+        }
+        Insert: {
+          id?: string
+          client_id: string
+          course_slug: string
+          granted_by?: string | null
+          granted_at?: string
+        }
+        Update: {
+          id?: string
+          client_id?: string
+          course_slug?: string
+          granted_by?: string | null
+          granted_at?: string
+        }
+        Relationships: []
+      }
+      lesson_progress: {
+        Row: {
+          id: string
+          client_id: string
+          course_slug: string
+          lesson_id: string
+          completed_at: string
+        }
+        Insert: {
+          id?: string
+          client_id: string
+          course_slug: string
+          lesson_id: string
+          completed_at?: string
+        }
+        Update: {
+          id?: string
+          client_id?: string
+          course_slug?: string
+          lesson_id?: string
+          completed_at?: string
+        }
+        Relationships: []
+      }
+      course_notes: {
+        Row: {
+          id: string
+          client_id: string
+          course_slug: string
+          lesson_id: string
+          content: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          client_id: string
+          course_slug: string
+          lesson_id: string
+          content?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          client_id?: string
+          course_slug?: string
+          lesson_id?: string
+          content?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      quiz_attempts: {
+        Row: {
+          id: string
+          client_id: string
+          course_slug: string
+          quiz_id: string
+          score: number
+          total: number
+          answers: number[]
+          attempted_at: string
+        }
+        Insert: {
+          id?: string
+          client_id: string
+          course_slug: string
+          quiz_id: string
+          score: number
+          total: number
+          answers?: number[]
+          attempted_at?: string
+        }
+        Update: {
+          id?: string
+          client_id?: string
+          course_slug?: string
+          quiz_id?: string
+          score?: number
+          total?: number
+          answers?: number[]
+          attempted_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

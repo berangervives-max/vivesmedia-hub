@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight, GraduationCap } from 'lucide-react'
 
 export default async function DashboardLayout({
   children,
@@ -32,6 +32,12 @@ export default async function DashboardLayout({
           </Link>
 
           <div className="flex items-center gap-5">
+            <Link
+              href="/dashboard/formations"
+              className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <GraduationCap className="w-3.5 h-3.5" /> Mes formations
+            </Link>
             <Link
               href="https://vivesmedia.com"
               target="_blank"
