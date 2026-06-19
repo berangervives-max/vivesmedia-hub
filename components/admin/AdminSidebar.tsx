@@ -2,12 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, FolderOpen, Settings, LogOut, ArrowUpRight, Newspaper } from 'lucide-react'
+import { LayoutDashboard, Users, FolderOpen, Settings, LogOut, ArrowUpRight, Newspaper, BarChart3, GraduationCap } from 'lucide-react'
 
 const navLinks = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/clients', label: 'Clients', icon: Users, exact: false },
   { href: '/admin/projects', label: 'Projets', icon: FolderOpen, exact: false },
+  { href: '/admin/services', label: 'Services & KPI', icon: BarChart3, exact: false },
+  { href: '/admin/formations', label: 'Formations', icon: GraduationCap, exact: false },
   { href: '/admin/blog', label: 'Blog', icon: Newspaper, exact: false },
   { href: '/admin/settings', label: 'Paramètres', icon: Settings, exact: false },
 ]

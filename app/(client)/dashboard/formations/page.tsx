@@ -2,7 +2,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
-import { COURSES, getCourses, lessonCount } from '@/lib/courses'
+import { lessonCount } from '@/lib/courses'
+import { listCoursesStore } from '@/lib/courses/store'
 import { GraduationCap, ArrowRight, CheckCircle2 } from 'lucide-react'
 
 export const metadata = { title: 'Mes formations — vivesmedia.com' }
@@ -33,7 +34,8 @@ export default async function FormationsPage() {
     enrolledSlugs = (enrollments ?? []).map((e) => e.course_slug)
   }
 
-  const courses = isAdmin ? COURSES : getCourses(enrolledSlugs)
+  const allCourses = await listCoursesStore()
+  const courses = isAdmin ? allCourses : allCourses.filter((c) => enrolledSlugs.includes(c.slug))
 
   // Progression par cours
   const completedByCourse = new Map<string, Set<string>>()

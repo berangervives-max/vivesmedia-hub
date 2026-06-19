@@ -476,6 +476,36 @@ export interface Database {
         }
         Relationships: []
       }
+      courses: {
+        Row: {
+          id: string
+          slug: string
+          data: unknown
+          published: boolean
+          position: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          slug: string
+          data?: unknown
+          published?: boolean
+          position?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          slug?: string
+          data?: unknown
+          published?: boolean
+          position?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

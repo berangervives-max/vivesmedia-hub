@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getCourse } from '@/lib/courses'
+import { getCourseStore } from '@/lib/courses/store'
 import { ArrowLeft, Lock } from 'lucide-react'
 import CoursePlayer from './CoursePlayer'
 
@@ -13,7 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function CoursePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const course = getCourse(slug)
+  const course = await getCourseStore(slug)
   if (!course) notFound()
 
   const supabase = await createClient()
