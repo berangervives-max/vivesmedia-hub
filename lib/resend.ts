@@ -1,6 +1,18 @@
 import { Resend } from 'resend'
 
-export const resend = new Resend(process.env.RESEND_API_KEY)
+// Initialisation paresseuse : on ne construit le client Resend qu'au 1er usage
+// (à l'exécution d'une route), jamais au chargement du module. Sinon le build
+// (collecte des pages / prerender) plante si RESEND_API_KEY est absent — ce qui
+// arrive notamment sur les déploiements Preview Vercel où les secrets ne sont
+// pas dans le scope.
+let _resend: Resend | null = null
+export const resend = new Proxy({} as Resend, {
+  get(_t, prop) {
+    if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY)
+    const v = (_resend as unknown as Record<string | symbol, unknown>)[prop]
+    return typeof v === 'function' ? v.bind(_resend) : v
+  },
+})
 
 const FROM = 'hub@vivesmedia.com'
 const FROM_NAME = 'vivesmedia.com'
