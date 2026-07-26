@@ -39,9 +39,10 @@ export async function proxy(request: NextRequest) {
   }
 
   if (user && pathname.startsWith('/admin')) {
-    const isAdmin =
-      user.user_metadata?.role === 'admin' ||
-      user.email === process.env.ADMIN_EMAIL
+    // Sécurité : l'admin est déterminé UNIQUEMENT par l'e-mail vérifié (ADMIN_EMAIL).
+    // On n'utilise PAS user_metadata.role : ce champ est modifiable par l'utilisateur
+    // lui-même (updateUser) → un client pourrait se déclarer admin (escalade de privilèges).
+    const isAdmin = user.email === process.env.ADMIN_EMAIL
 
     if (!isAdmin) {
       const url = request.nextUrl.clone()

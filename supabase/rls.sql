@@ -19,7 +19,9 @@ ALTER TABLE notifications_log ENABLE ROW LEVEL SECURITY;
 CREATE OR REPLACE FUNCTION is_admin()
 RETURNS BOOLEAN AS $$
 BEGIN
-  RETURN (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin';
+  -- Sécurité : le rôle admin repose sur l'e-mail VÉRIFIÉ (non modifiable par l'utilisateur),
+  -- et NON sur user_metadata.role (modifiable via updateUser → escalade de privilèges).
+  RETURN (auth.jwt() ->> 'email') = 'berangervives@gmail.com';
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
