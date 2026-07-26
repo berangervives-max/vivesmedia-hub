@@ -14,7 +14,6 @@ export async function POST(
   if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
 
   const isAdmin =
-    user.user_metadata?.role === 'admin' ||
     user.email === process.env.ADMIN_EMAIL
 
   if (!isAdmin) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 })

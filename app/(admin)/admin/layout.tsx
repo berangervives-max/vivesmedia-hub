@@ -15,7 +15,6 @@ export default async function AdminLayout({
   if (!user) redirect('/login')
 
   const isAdmin =
-    user.user_metadata?.role === 'admin' ||
     user.email === process.env.ADMIN_EMAIL
   if (!isAdmin) redirect('/dashboard')
 

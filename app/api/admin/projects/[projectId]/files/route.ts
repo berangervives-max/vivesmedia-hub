@@ -7,7 +7,7 @@ async function requireAdmin() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const adminEmail = process.env.ADMIN_EMAIL
-  if (!user || (user.user_metadata?.role !== 'admin' && user.email !== adminEmail)) {
+  if (!user || user.email !== adminEmail) {
     return { supabase, user: null }
   }
   return { supabase, user }
