@@ -6,10 +6,30 @@ import type { ProjectPhase } from '@/types/database'
 export const runtime = 'nodejs'
 export const maxDuration = 30
 
+// Throttle en mémoire (best-effort) : max 8 requêtes / minute / utilisateur,
+// pour éviter qu'un client spamme l'assistant et brûle des tokens Anthropic.
+const hits = new Map<string, number[]>()
+function tooMany(userId: string): boolean {
+  const now = Date.now()
+  const arr = (hits.get(userId) || []).filter((t) => now - t < 60_000)
+  arr.push(now)
+  hits.set(userId, arr)
+  return arr.length > 8
+}
+
 export async function POST(req: NextRequest) {
+  // Garde : pas de clé IA → réponse propre, jamais un 500 qui fuit la stack.
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json({ error: 'Assistant IA momentanément indisponible.' }, { status: 503 })
+  }
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+
+  if (tooMany(user.id)) {
+    return NextResponse.json({ error: "Trop de questions d'affilée, réessaie dans une minute." }, { status: 429 })
+  }
 
   const { question, projectId, history = [] } = await req.json() as {
     question: string
@@ -18,6 +38,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (!question?.trim()) return NextResponse.json({ error: 'Question vide' }, { status: 400 })
+  if (question.length > 2000) return NextResponse.json({ error: 'Question trop longue.' }, { status: 400 })
 
   const { data: client } = await supabase
     .from('clients')
@@ -41,13 +62,17 @@ export async function POST(req: NextRequest) {
     { role: 'user', content: question },
   ]
 
-  const response = await anthropic.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 600,
-    system: buildClientSystemPrompt(project.current_phase as ProjectPhase, project.name),
-    messages,
-  })
-
-  const answer = response.content[0].type === 'text' ? response.content[0].text : ''
-  return NextResponse.json({ answer })
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 600,
+      system: buildClientSystemPrompt(project.current_phase as ProjectPhase, project.name),
+      messages,
+    })
+    const answer = response.content[0].type === 'text' ? response.content[0].text : ''
+    return NextResponse.json({ answer })
+  } catch (e) {
+    console.error('[ai/ask] erreur Anthropic:', e)
+    return NextResponse.json({ error: "L'assistant a rencontré un souci, réessaie dans un instant." }, { status: 502 })
+  }
 }
