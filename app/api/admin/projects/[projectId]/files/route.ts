@@ -28,6 +28,10 @@ export async function POST(
   if (!file || !category) {
     return NextResponse.json({ error: 'Missing file or category' }, { status: 400 })
   }
+  // Limite de taille : 20 Mo (évite les uploads abusifs / saturation du storage).
+  if (file.size > 20 * 1024 * 1024) {
+    return NextResponse.json({ error: 'Fichier trop volumineux (max 20 Mo).' }, { status: 413 })
+  }
 
   const { data: project } = await supabase
     .from('projects')
@@ -38,8 +42,8 @@ export async function POST(
   if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 })
 
   const adminClient = createAdminClient()
-  const ext = file.name.split('.').pop() ?? 'bin'
-  const storagePath = `${projectId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}.${ext}`
+  // Le nom nettoyé conserve déjà son extension → on N'ajoute PAS `.${ext}` (évite « photo.png.png »).
+  const storagePath = `${projectId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
 
   const arrayBuffer = await file.arrayBuffer()
   const { error: uploadError } = await adminClient.storage

@@ -40,7 +40,7 @@ export async function sendInvitationEmail({
       <p style="margin: 0 0 6px; color: #555; font-size: 15px;">Votre espace projet <strong style="color: #111;">${projectName}</strong> vient d'être créé.</p>
       <p style="margin: 0 0 28px; color: #555; font-size: 15px;">Accédez à votre tableau de bord pour suivre l'avancement, télécharger vos fichiers et échanger avec notre équipe.</p>
       ${orangeBtn('Accéder à mon espace →', magicLink)}
-      <p style="margin: 28px 0 0; font-size: 13px; color: #999;">Ce lien est valable 24h. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
+      <p style="margin: 28px 0 0; font-size: 13px; color: #999;">Ce lien est valable 1 heure. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
     `),
   })
 }
