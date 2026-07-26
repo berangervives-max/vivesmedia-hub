@@ -26,7 +26,7 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
     <aside className="w-60 bg-foreground flex flex-col shrink-0">
       {/* Brand */}
       <div className="px-6 py-6 border-b border-white/10">
-        <p className="text-xs font-bold tracking-[0.2em] uppercase mb-0.5" style={{ color: '#F4521E' }}>
+        <p className="text-xs font-bold tracking-[0.2em] uppercase mb-0.5 text-primary">
           vivesmedia.com
         </p>
         <p className="text-sm font-semibold text-white">Hub Admin</p>
@@ -42,10 +42,9 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
               href={href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                 active
-                  ? 'text-foreground'
+                  ? 'bg-primary text-primary-foreground font-semibold shadow-[0_8px_20px_-8px_rgba(244,82,30,0.8)]'
                   : 'text-white/50 hover:text-white hover:bg-white/5'
               }`}
-              style={active ? { backgroundColor: '#F4521E' } : {}}
             >
               <Icon className="w-4 h-4 shrink-0" />
               {label}
