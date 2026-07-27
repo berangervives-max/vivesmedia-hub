@@ -19,7 +19,7 @@ export default async function AdminLayout({
   if (!isAdmin) redirect('/dashboard')
 
   return (
-    <div className="flex h-screen bg-zinc-50">
+    <div className="flex h-screen bg-background">
       <AdminSidebar userEmail={user.email ?? ''} />
       <main className="flex-1 overflow-y-auto">
         {children}

@@ -2,28 +2,20 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { PHASE_LABELS, PHASE_ORDER, TICKET_STATUS_LABELS, TICKET_PRIORITY_LABELS } from '@/types/database'
+import { PHASE_LABELS, PHASE_ORDER, phaseIndex } from '@/lib/phases'
+import { TICKET_STATUS_LABELS, TICKET_PRIORITY_LABELS } from '@/types/database'
 import type { ProjectPhase } from '@/types/database'
-import { ArrowLeft, ExternalLink } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Check } from 'lucide-react'
 import PhaseSelector from '@/components/admin/PhaseSelector'
 import FileUpload from '@/components/admin/FileUpload'
 import VideoManager from '@/components/admin/VideoManager'
 import ReviewButton from '@/components/admin/ReviewButton'
 import FormationGenerator from '@/components/admin/FormationGenerator'
 
-const PHASE_COLORS: Record<ProjectPhase, string> = {
-  onboarding: 'bg-blue-50 text-blue-600',
-  design: 'bg-purple-50 text-purple-600',
-  dev: 'bg-amber-50 text-amber-600',
-  recette: 'bg-orange-50 text-orange-600',
-  livraison: 'bg-emerald-50 text-emerald-600',
-  maintenance: 'bg-secondary text-muted-foreground',
-}
-
 const TICKET_PRIORITY_COLORS = {
   low: 'bg-secondary text-muted-foreground',
-  medium: 'bg-amber-50 text-amber-700',
-  high: 'bg-red-50 text-red-700',
+  medium: 'bg-(--sem-warn-bg) text-(--sem-warn-fg)',
+  high: 'bg-(--sem-danger-bg) text-(--sem-danger-fg)',
 }
 
 export default async function ProjectDetailPage({
@@ -57,12 +49,12 @@ export default async function ProjectDetailPage({
       supabase.from('onboarding_forms').select('id').eq('project_id', projectId).maybeSingle(),
     ])
 
-  const currentPhaseIndex = PHASE_ORDER.indexOf(project.current_phase as ProjectPhase)
-  const canSendReview =
-    project.current_phase === 'livraison' || project.current_phase === 'maintenance'
+  const phase = project.current_phase as ProjectPhase
+  const currentPhaseIndex = phaseIndex(phase)
+  const canSendReview = phase === 'livraison' || phase === 'maintenance'
 
   return (
-    <div className="p-8 max-w-5xl">
+    <div className="p-6 sm:p-8 max-w-5xl">
       <Link
         href="/admin/projects"
         className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
@@ -71,58 +63,40 @@ export default async function ProjectDetailPage({
         Retour aux projets
       </Link>
 
-      <div className="flex items-start justify-between mb-8">
+      <div className="flex items-start justify-between gap-4 flex-wrap mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{project.name}</h1>
+          <p className="hub-eyebrow">Projet client</p>
+          <h1 className="text-2xl font-bold text-foreground mt-1.5">{project.name}</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {client?.name} · {client?.email}
+            <span className="hub-accent text-foreground/80">{client?.name}</span> · {client?.email}
             {client?.company && <span> · {client.company}</span>}
           </p>
         </div>
         <div className="flex items-center gap-3">
           {canSendReview && <ReviewButton projectId={projectId} />}
-          <span className={`text-sm font-medium px-3 py-1.5 rounded-full ${PHASE_COLORS[project.current_phase as ProjectPhase]}`}>
-            {PHASE_LABELS[project.current_phase as ProjectPhase]}
-          </span>
+          <span className="phase-badge" data-phase={phase}>{PHASE_LABELS[phase]}</span>
         </div>
       </div>
 
-      {/* Phase progression */}
-      <div className="bg-card rounded-2xl border border-border p-6 mb-6">
+      {/* Progression du projet */}
+      <div className="hub-card p-6 mb-6">
         <p className="text-sm font-semibold text-foreground mb-5">Progression du projet</p>
-        <div className="flex items-center gap-0 mb-6">
-          {PHASE_ORDER.map((phase, index) => (
-            <div key={phase} className="flex items-center flex-1">
-              <div className="flex flex-col items-center flex-1">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${
-                    index <= currentPhaseIndex
-                      ? 'text-white'
-                      : 'bg-secondary text-muted-foreground'
-                  }`}
-                  style={index <= currentPhaseIndex ? { backgroundColor: '#F4521E' } : {}}
-                >
-                  {index < currentPhaseIndex ? '✓' : index + 1}
-                </div>
-                <span className="text-xs text-muted-foreground mt-1.5 text-center leading-tight">
-                  {PHASE_LABELS[phase]}
-                </span>
+        <div className="hub-stepper mb-6">
+          {PHASE_ORDER.map((p, index) => {
+            const state = index < currentPhaseIndex ? 'is-done' : index === currentPhaseIndex ? 'is-current' : ''
+            return (
+              <div key={p} className={`hub-step ${state}`}>
+                <span className="ln" />
+                <span className="bul">{index < currentPhaseIndex && <Check strokeWidth={3} />}</span>
+                <span className="lb">{PHASE_LABELS[p]}</span>
               </div>
-              {index < PHASE_ORDER.length - 1 && (
-                <div
-                  className={`h-0.5 flex-1 mx-1 -mt-5 ${
-                    index < currentPhaseIndex ? '' : 'bg-border'
-                  }`}
-                  style={index < currentPhaseIndex ? { backgroundColor: '#F4521E' } : {}}
-                />
-              )}
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         <PhaseSelector
           projectId={projectId}
-          currentPhase={project.current_phase as ProjectPhase}
+          currentPhase={phase}
           clientEmail={client?.email ?? ''}
           clientName={client?.name ?? ''}
           projectName={project.name}
@@ -130,29 +104,26 @@ export default async function ProjectDetailPage({
       </div>
 
       <Tabs defaultValue="history">
-        <TabsList className="mb-6 bg-secondary rounded-xl p-1">
-          <TabsTrigger value="history" className="rounded-lg">Historique</TabsTrigger>
-          <TabsTrigger value="onboarding" className="rounded-lg">
+        <TabsList className="mb-6 bg-secondary rounded-xl p-1 flex-wrap h-auto">
+          <TabsTrigger value="history" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">Historique</TabsTrigger>
+          <TabsTrigger value="onboarding" className="rounded-lg gap-1.5 data-[state=active]:bg-card data-[state=active]:shadow-sm">
             Onboarding
-            {!form && <span className="ml-1.5 w-2 h-2 rounded-full inline-block" style={{ backgroundColor: '#F4521E' }} />}
+            {!form && <span className="w-2 h-2 rounded-full inline-block bg-primary" />}
           </TabsTrigger>
-          <TabsTrigger value="files" className="rounded-lg">Fichiers ({files?.length ?? 0})</TabsTrigger>
-          <TabsTrigger value="training" className="rounded-lg">Formation ({videos?.length ?? 0})</TabsTrigger>
-          <TabsTrigger value="tickets" className="rounded-lg">Tickets ({tickets?.length ?? 0})</TabsTrigger>
+          <TabsTrigger value="files" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">Fichiers ({files?.length ?? 0})</TabsTrigger>
+          <TabsTrigger value="training" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">Formation ({videos?.length ?? 0})</TabsTrigger>
+          <TabsTrigger value="tickets" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">Tickets ({tickets?.length ?? 0})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="history">
-          <div className="bg-card rounded-2xl border border-border p-6">
+          <div className="hub-card p-6">
             {!phaseHistory?.length ? (
               <p className="text-sm text-muted-foreground text-center py-4">Aucun historique.</p>
             ) : (
               <div className="space-y-4">
                 {phaseHistory.map((entry) => (
                   <div key={entry.id} className="flex items-start gap-3">
-                    <div
-                      className="w-2 h-2 rounded-full mt-1.5 shrink-0"
-                      style={{ backgroundColor: '#F4521E' }}
-                    />
+                    <div className="w-2 h-2 rounded-full mt-1.5 shrink-0 bg-primary" />
                     <div>
                       <p className="text-sm font-medium text-foreground">
                         → {PHASE_LABELS[entry.phase as ProjectPhase]}
@@ -175,27 +146,27 @@ export default async function ProjectDetailPage({
         </TabsContent>
 
         <TabsContent value="onboarding">
-          <div className="bg-card rounded-2xl border border-border p-6">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-sm font-semibold text-foreground">Formulaire d'onboarding</p>
+          <div className="hub-card p-6">
+            <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+              <p className="text-sm font-semibold text-foreground">Formulaire d&apos;onboarding</p>
               <Link
                 href={`/admin/projects/${projectId}/form`}
-                className="flex items-center gap-1.5 text-xs text-white px-3 py-1.5 rounded-full hover:opacity-90 transition-colors"
-                style={{ backgroundColor: '#F4521E' }}
+                className="hub-btn hub-btn-primary hub-btn-sm"
               >
-                <ExternalLink className="w-3 h-3" />
+                <ExternalLink className="w-3.5 h-3.5" />
                 {form ? 'Modifier le formulaire' : 'Créer le formulaire'}
               </Link>
             </div>
             {form ? (
-              <p className="text-sm text-emerald-600 font-medium">
-                ✓ Formulaire créé et disponible pour le client.
+              <p className="text-sm font-medium text-(--sem-ok-fg) flex items-center gap-1.5">
+                <Check className="w-4 h-4" strokeWidth={3} />
+                Formulaire créé et disponible pour le client.
               </p>
             ) : (
-              <div className="rounded-xl p-4" style={{ backgroundColor: 'rgba(244,82,30,0.06)', border: '1px solid rgba(244,82,30,0.15)' }}>
+              <div className="rounded-xl p-4 border border-primary/15 bg-primary/6">
                 <p className="text-sm font-medium text-foreground">Aucun formulaire créé</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Créez un formulaire d'onboarding pour recueillir les informations de démarrage du client.
+                  Créez un formulaire d&apos;onboarding pour recueillir les informations de démarrage du client.
                 </p>
               </div>
             )}
@@ -203,15 +174,15 @@ export default async function ProjectDetailPage({
         </TabsContent>
 
         <TabsContent value="files">
-          <div className="bg-card rounded-2xl border border-border p-6">
-            <p className="text-sm font-semibold text-foreground mb-4">Fichiers & Documents</p>
+          <div className="hub-card p-6">
+            <p className="text-sm font-semibold text-foreground mb-4">Fichiers &amp; Documents</p>
             <FileUpload projectId={projectId} initialFiles={files ?? []} />
           </div>
         </TabsContent>
 
         <TabsContent value="training">
           <div className="space-y-4">
-            <div className="bg-card rounded-2xl border border-border p-6">
+            <div className="hub-card p-6">
               <p className="text-sm font-semibold text-foreground mb-4">Vidéos de formation</p>
               <VideoManager projectId={projectId} initialVideos={videos ?? []} />
             </div>
@@ -220,7 +191,7 @@ export default async function ProjectDetailPage({
         </TabsContent>
 
         <TabsContent value="tickets">
-          <div className="bg-card rounded-2xl border border-border p-6">
+          <div className="hub-card p-6">
             {!tickets?.length ? (
               <p className="text-sm text-muted-foreground text-center py-4">Aucun ticket de support.</p>
             ) : (
@@ -234,9 +205,9 @@ export default async function ProjectDetailPage({
                       </div>
                       <div className="flex flex-col items-end gap-1.5 shrink-0">
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                          ticket.status === 'open' ? 'bg-red-50 text-red-700' :
-                          ticket.status === 'in_progress' ? 'bg-amber-50 text-amber-700' :
-                          'bg-emerald-50 text-emerald-700'
+                          ticket.status === 'open' ? 'bg-(--sem-danger-bg) text-(--sem-danger-fg)' :
+                          ticket.status === 'in_progress' ? 'bg-(--sem-warn-bg) text-(--sem-warn-fg)' :
+                          'bg-(--sem-ok-bg) text-(--sem-ok-fg)'
                         }`}>
                           {TICKET_STATUS_LABELS[ticket.status as keyof typeof TICKET_STATUS_LABELS]}
                         </span>
