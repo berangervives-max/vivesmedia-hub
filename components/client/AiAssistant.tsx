@@ -75,8 +75,7 @@ export default function AiAssistant({ projectId }: { projectId: string }) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2.5 text-sm font-semibold text-white px-5 py-2.5 rounded-full hover:opacity-90 transition-all"
-        style={{ backgroundColor: '#F4521E' }}
+        className="hub-btn hub-btn-primary"
       >
         <Sparkles className="w-4 h-4" />
         Assistant IA
@@ -89,11 +88,8 @@ export default function AiAssistant({ projectId }: { projectId: string }) {
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
         <div className="flex items-center gap-3">
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-            style={{ backgroundColor: 'rgba(244,82,30,0.1)' }}
-          >
-            <Bot className="w-4 h-4" style={{ color: '#F4521E' }} />
+          <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-primary/10">
+            <Bot className="w-4 h-4 text-primary" />
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">Assistant vivesmedia.com</p>
@@ -115,10 +111,9 @@ export default function AiAssistant({ projectId }: { projectId: string }) {
             <div
               className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                 msg.role === 'user'
-                  ? 'text-white rounded-br-sm'
+                  ? 'bg-primary text-primary-foreground rounded-br-sm'
                   : 'bg-secondary text-foreground rounded-bl-sm'
               }`}
-              style={msg.role === 'user' ? { backgroundColor: '#F4521E' } : {}}
             >
               {msg.content}
             </div>
@@ -165,14 +160,12 @@ export default function AiAssistant({ projectId }: { projectId: string }) {
             onChange={(e) => setInput(e.target.value)}
             placeholder="Posez votre question…"
             disabled={loading}
-            className="flex-1 text-sm bg-secondary rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 disabled:opacity-50 transition-shadow"
-            style={{ '--tw-ring-color': '#F4521E' } as React.CSSProperties}
+            className="flex-1 text-sm bg-secondary rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 transition-shadow"
           />
           <button
             type="submit"
             disabled={loading || !input.trim()}
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-white hover:opacity-90 transition-all disabled:opacity-40 shrink-0"
-            style={{ backgroundColor: '#F4521E' }}
+            className="w-9 h-9 rounded-xl flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary/90 transition-all disabled:opacity-40 shrink-0"
           >
             <Send className="w-4 h-4" />
           </button>

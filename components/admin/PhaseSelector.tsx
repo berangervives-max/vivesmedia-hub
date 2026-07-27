@@ -56,7 +56,7 @@ export default function PhaseSelector({
     <div className="space-y-4">
       <div className="flex items-end gap-3">
         <div className="flex-1 space-y-2">
-          <Label className="text-xs text-zinc-500">Changer la phase</Label>
+          <Label className="text-xs text-muted-foreground">Changer la phase</Label>
           <Select value={selected} onValueChange={(v) => setSelected(v as ProjectPhase)}>
             <SelectTrigger className="h-9">
               <SelectValue />
@@ -71,7 +71,7 @@ export default function PhaseSelector({
           </Select>
         </div>
         <div className="flex-1 space-y-2">
-          <Label className="text-xs text-zinc-500">Note (optionnel)</Label>
+          <Label className="text-xs text-muted-foreground">Note (optionnel)</Label>
           <Input
             value={note}
             onChange={(e) => setNote(e.target.value)}
@@ -83,13 +83,13 @@ export default function PhaseSelector({
           onClick={handleUpdate}
           disabled={!hasChanged || loading}
           size="sm"
-          className="h-9"
+          className="h-9 rounded-full px-5"
         >
           {loading ? 'Mise à jour…' : 'Valider →'}
         </Button>
       </div>
       {hasChanged && (
-        <p className="text-xs text-zinc-400">
+        <p className="text-xs text-muted-foreground">
           Un email sera envoyé à {clientEmail} pour notifier le changement.
         </p>
       )}

@@ -70,8 +70,8 @@ export default function FormationGenerator({ projectId }: { projectId: string })
       {/* Form */}
       <div className="bg-card rounded-2xl border border-border p-6">
         <div className="flex items-center gap-2 mb-5">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(244,82,30,0.1)' }}>
-            <Sparkles className="w-3.5 h-3.5" style={{ color: '#F4521E' }} />
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10">
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
           </div>
           <p className="text-sm font-semibold text-foreground">Générateur de module IA</p>
         </div>
@@ -87,10 +87,9 @@ export default function FormationGenerator({ projectId }: { projectId: string })
                   onClick={() => setSubject(s)}
                   className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                     subject === s
-                      ? 'text-white border-transparent'
+                      ? 'bg-primary text-primary-foreground border-primary'
                       : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'
                   }`}
-                  style={subject === s ? { backgroundColor: '#F4521E', borderColor: '#F4521E' } : {}}
                 >
                   {s}
                 </button>
@@ -159,10 +158,9 @@ export default function FormationGenerator({ projectId }: { projectId: string })
                     onClick={() => setLevel(l.value as 'debutant' | 'intermediaire')}
                     className={`flex-1 text-xs py-2.5 rounded-xl border transition-colors font-medium ${
                       level === l.value
-                        ? 'text-white border-transparent'
+                        ? 'bg-primary text-primary-foreground border-primary'
                         : 'border-border text-muted-foreground hover:text-foreground'
                     }`}
-                    style={level === l.value ? { backgroundColor: '#F4521E' } : {}}
                   >
                     {l.label}
                   </button>
@@ -174,8 +172,7 @@ export default function FormationGenerator({ projectId }: { projectId: string })
           <button
             onClick={generate}
             disabled={loading || !subject.trim()}
-            className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-white py-3 rounded-full hover:opacity-90 transition-all disabled:opacity-50"
-            style={{ backgroundColor: '#F4521E' }}
+            className="hub-btn hub-btn-primary w-full py-3 disabled:opacity-50"
           >
             {loading ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Génération en cours…</>
@@ -195,7 +192,7 @@ export default function FormationGenerator({ projectId }: { projectId: string })
               onClick={copyToClipboard}
               className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? <Check className="w-3.5 h-3.5 text-(--sem-ok-fg)" /> : <Copy className="w-3.5 h-3.5" />}
               {copied ? 'Copié !' : 'Copier'}
             </button>
           </div>

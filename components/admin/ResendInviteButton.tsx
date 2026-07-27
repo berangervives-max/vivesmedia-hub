@@ -37,11 +37,11 @@ export default function ResendInviteButton({
     <button
       onClick={handleResend}
       disabled={loading || sent}
-      className="flex items-center gap-2 text-sm font-medium border border-zinc-200 text-zinc-700 px-4 py-2 rounded-xl hover:bg-zinc-50 disabled:opacity-60 transition-colors"
+      className="hub-btn hub-btn-secondary disabled:opacity-60"
     >
       {sent ? (
         <>
-          <Check className="w-4 h-4 text-green-600" />
+          <Check className="w-4 h-4 text-(--sem-ok-fg)" />
           Invitation envoyée
         </>
       ) : (
