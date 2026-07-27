@@ -7,10 +7,16 @@ import { ArrowLeft, ArrowUpRight, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 import type { TicketPriority } from '@/types/database'
 
-const PRIORITY_OPTIONS: { value: TicketPriority; label: string; description: string; color: string }[] = [
-  { value: 'low', label: 'Faible', description: 'Peut attendre quelques jours', color: 'emerald' },
-  { value: 'medium', label: 'Moyen', description: 'À traiter dans les 48h', color: 'amber' },
-  { value: 'high', label: 'Urgent', description: 'Bloque mon activité', color: 'red' },
+const PRIORITY_OPTIONS: {
+  value: TicketPriority
+  label: string
+  description: string
+  active: string
+  activeText: string
+}[] = [
+  { value: 'low', label: 'Faible', description: 'Peut attendre quelques jours', active: 'border-emerald-300 bg-emerald-50', activeText: 'text-emerald-700' },
+  { value: 'medium', label: 'Moyen', description: 'À traiter dans les 48h', active: 'border-amber-300 bg-amber-50', activeText: 'text-amber-700' },
+  { value: 'high', label: 'Urgent', description: 'Bloque mon activité', active: 'border-red-300 bg-red-50', activeText: 'text-red-700' },
 ]
 
 export default function NewTicketPage() {
@@ -48,6 +54,9 @@ export default function NewTicketPage() {
     }
   }
 
+  const inputClass =
+    'w-full text-sm bg-card rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground border border-border focus:outline-none focus:border-primary focus:ring-3 focus:ring-primary/20 transition-colors'
+
   return (
     <div className="max-w-xl mx-auto">
       <Link
@@ -58,17 +67,17 @@ export default function NewTicketPage() {
         Retour au projet
       </Link>
 
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] mb-1" style={{ color: '#F4521E' }}>
-        Support
-      </p>
-      <h1 className="text-2xl font-bold text-foreground mb-2">Nouveau ticket de support</h1>
+      <p className="hub-eyebrow">Support</p>
+      <h1 className="text-2xl font-bold text-foreground mt-1.5 mb-2">
+        Nouveau <span className="hub-accent">ticket</span>
+      </h1>
       <p className="text-sm text-muted-foreground mb-8">
         Décrivez votre demande avec le plus de détails possible pour accélérer la résolution.
       </p>
 
-      {/* Info banner */}
-      <div className="flex items-start gap-3 bg-card rounded-2xl border border-border p-4 mb-6">
-        <Clock className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#F4521E' }} />
+      {/* Bandeau info */}
+      <div className="flex items-start gap-3 hub-card p-4 mb-6">
+        <Clock className="w-4 h-4 shrink-0 mt-0.5 text-primary" />
         <p className="text-sm text-muted-foreground">
           Support disponible dans le cadre de votre contrat de maintenance.
           Délai de réponse habituel : <strong className="text-foreground">24-48h ouvrées</strong>.
@@ -77,9 +86,9 @@ export default function NewTicketPage() {
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Titre */}
-        <div className="bg-card rounded-2xl border border-border p-5">
+        <div className="hub-card p-5">
           <label className="block text-sm font-semibold text-foreground mb-3">
-            Titre du problème <span style={{ color: '#F4521E' }}>*</span>
+            Titre du problème <span className="text-primary">*</span>
           </label>
           <input
             type="text"
@@ -87,14 +96,14 @@ export default function NewTicketPage() {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Ex : La page contact ne s'affiche pas correctement"
             required
-            className="w-full text-sm bg-secondary rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none border border-transparent focus:border-border transition-colors"
+            className={inputClass}
           />
         </div>
 
         {/* Description */}
-        <div className="bg-card rounded-2xl border border-border p-5">
+        <div className="hub-card p-5">
           <label className="block text-sm font-semibold text-foreground mb-3">
-            Description détaillée <span style={{ color: '#F4521E' }}>*</span>
+            Description détaillée <span className="text-primary">*</span>
           </label>
           <textarea
             rows={5}
@@ -102,47 +111,39 @@ export default function NewTicketPage() {
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Décrivez le problème : ce que vous avez fait, ce que vous voyez, ce qui était attendu, comment reproduire…"
             required
-            className="w-full text-sm bg-secondary rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none border border-transparent focus:border-border resize-none transition-colors"
+            className={`${inputClass} resize-none`}
           />
         </div>
 
         {/* Priorité */}
-        <div className="bg-card rounded-2xl border border-border p-5">
-          <label className="block text-sm font-semibold text-foreground mb-3">Niveau d'urgence</label>
+        <div className="hub-card p-5">
+          <label className="block text-sm font-semibold text-foreground mb-3">Niveau d&apos;urgence</label>
           <div className="grid grid-cols-3 gap-2">
-            {PRIORITY_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setPriority(opt.value)}
-                className={`p-3 rounded-xl border text-left transition-all ${
-                  priority === opt.value
-                    ? opt.value === 'high'
-                      ? 'border-red-300 bg-red-50'
-                      : opt.value === 'medium'
-                      ? 'border-amber-300 bg-amber-50'
-                      : 'border-emerald-300 bg-emerald-50'
-                    : 'border-border bg-secondary/50 hover:border-border'
-                }`}
-              >
-                <p className={`text-sm font-semibold ${
-                  priority === opt.value
-                    ? opt.value === 'high' ? 'text-red-700' : opt.value === 'medium' ? 'text-amber-700' : 'text-emerald-700'
-                    : 'text-foreground'
-                }`}>
-                  {opt.label}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{opt.description}</p>
-              </button>
-            ))}
+            {PRIORITY_OPTIONS.map((opt) => {
+              const isActive = priority === opt.value
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setPriority(opt.value)}
+                  className={`p-3 rounded-xl border text-left transition-all ${
+                    isActive ? opt.active : 'border-border bg-secondary/50 hover:border-muted-foreground/30'
+                  }`}
+                >
+                  <p className={`text-sm font-semibold ${isActive ? opt.activeText : 'text-foreground'}`}>
+                    {opt.label}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{opt.description}</p>
+                </button>
+              )
+            })}
           </div>
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-white py-3 rounded-full hover:opacity-90 transition-all disabled:opacity-50"
-          style={{ backgroundColor: '#F4521E' }}
+          className="hub-btn hub-btn-primary w-full py-3 disabled:opacity-50"
         >
           {loading ? 'Envoi…' : <>Envoyer le ticket <ArrowUpRight className="w-4 h-4" /></>}
         </button>

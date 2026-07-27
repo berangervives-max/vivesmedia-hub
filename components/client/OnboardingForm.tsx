@@ -64,9 +64,9 @@ export default function OnboardingForm({ formId, projectId, fields, existingResp
     <form onSubmit={handleSubmit} className="space-y-6">
       {fields.map((field) => (
         <div key={field.id}>
-          <label className="block text-sm font-medium text-zinc-900 mb-1.5">
+          <label className="block text-sm font-medium text-foreground mb-1.5">
             {field.label}
-            {field.required && <span className="text-red-500 ml-0.5">*</span>}
+            {field.required && <span className="text-primary ml-0.5">*</span>}
           </label>
           <FieldInput
             field={field}
@@ -80,7 +80,7 @@ export default function OnboardingForm({ formId, projectId, fields, existingResp
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-zinc-900 text-white text-sm font-medium py-3 px-6 rounded-xl hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="hub-btn hub-btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? 'Envoi...' : 'Envoyer le formulaire →'}
       </button>
@@ -100,7 +100,7 @@ function FieldInput({
   onToggle: (opt: string) => void
 }) {
   const inputClass =
-    'w-full text-sm text-zinc-900 bg-white border border-zinc-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent placeholder:text-zinc-400 transition-shadow'
+    'w-full text-sm text-foreground bg-card border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-primary focus:ring-3 focus:ring-primary/20 placeholder:text-muted-foreground transition-colors'
 
   const type = field.type as FormFieldType
 
@@ -142,8 +142,8 @@ function FieldInput({
             onClick={() => onToggle(opt)}
             className={`text-sm px-4 py-2 rounded-xl border transition-colors ${
               selected.includes(opt)
-                ? 'bg-zinc-900 text-white border-zinc-900'
-                : 'bg-white text-zinc-700 border-zinc-200 hover:border-zinc-400'
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'bg-card text-foreground border-border hover:border-muted-foreground/40'
             }`}
           >
             {opt}
@@ -175,7 +175,7 @@ function FieldInput({
           placeholder="Collez l'URL de votre fichier (Google Drive, Dropbox...)"
           className={inputClass}
         />
-        <p className="text-xs text-zinc-400 mt-1">
+        <p className="text-xs text-muted-foreground mt-1">
           Partagez votre fichier via Google Drive, Dropbox ou WeTransfer et collez le lien ici.
         </p>
       </div>

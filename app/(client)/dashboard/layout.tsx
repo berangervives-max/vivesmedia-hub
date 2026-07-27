@@ -27,7 +27,7 @@ export default async function DashboardLayout({
             className="group flex items-center gap-1.5"
           >
             <span className="text-sm font-bold tracking-[0.15em] text-foreground uppercase">
-              vivesmedia<span style={{ color: '#F4521E' }}>.com</span>
+              vivesmedia<span className="text-primary">.com</span>
             </span>
           </Link>
 
@@ -68,11 +68,11 @@ export default async function DashboardLayout({
         <div className="max-w-4xl mx-auto px-6 py-12">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8">
             <div className="sm:col-span-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] mb-3" style={{ color: '#F4521E' }}>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] mb-3 text-primary">
                 vivesmedia.com
               </p>
               <p className="text-lg font-bold text-white mb-1">
-                Votre prochain projet ?
+                Votre <span className="hub-accent text-white">prochain projet</span> ?
               </p>
               <p className="text-sm text-white/60 mb-5 leading-relaxed">
                 Agence web & e-commerce à Avignon. Sites Shopify, SEO, référencement IA,
@@ -83,8 +83,7 @@ export default async function DashboardLayout({
                   href="https://vivesmedia.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-foreground text-sm font-semibold px-6 py-2.5 rounded-full hover:opacity-90 transition-all"
-                  style={{ backgroundColor: '#F4521E' }}
+                  className="hub-btn hub-btn-primary hub-btn-sm"
                 >
                   Voir nos offres <ArrowUpRight className="w-3.5 h-3.5" />
                 </Link>
@@ -113,7 +112,7 @@ export default async function DashboardLayout({
                       rel="noopener noreferrer"
                       className="text-xs text-white/50 hover:text-white transition-colors flex items-center gap-2"
                     >
-                      <span className="w-1 h-1 rounded-full shrink-0" style={{ backgroundColor: '#F4521E' }} />
+                      <span className="w-1 h-1 rounded-full shrink-0 bg-primary" />
                       {service}
                     </Link>
                   </li>

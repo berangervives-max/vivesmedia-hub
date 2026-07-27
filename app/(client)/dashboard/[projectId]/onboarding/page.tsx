@@ -64,10 +64,8 @@ export default async function OnboardingPage({
       </Link>
 
       <div className="mb-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] mb-1" style={{ color: '#F4521E' }}>
-          {project.name}
-        </p>
-        <h1 className="text-2xl font-bold text-foreground">{form.title}</h1>
+        <p className="hub-eyebrow">{project.name}</p>
+        <h1 className="text-2xl font-bold text-foreground mt-1.5">{form.title}</h1>
         <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
           Merci de compléter ce formulaire pour démarrer votre projet. Cela prend 5 à 10 minutes.
         </p>
